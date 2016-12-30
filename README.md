@@ -19,7 +19,4 @@ assert(y.value == 12)
 ```
 
 # Links
-* [kiwi-java] (https://github.com/alexbirkett/kiwi-java)
-* [Kiwi](https://github.com/nucleic/kiwi)
-* [Java Cassowary](https://github.com/pybee/cassowary-java)
-* [Haxe-Kiwi](https://github.com/Tw1ddle/haxe-kiwi)
+* [overconstrained.io](http://overconstrained.io) - collection of similar projects
