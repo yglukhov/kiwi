@@ -73,7 +73,8 @@ template `+`*(variable: Variable, term: Term): Expression = term + variable
 template `+`*(first, second: Variable): Expression = newTerm(first) + second
 template `+`*(variable: Variable, constant: float): Expression = newTerm(variable) + constant
 
-template `-`*(lhs: Variable, rhs: Expression | Term | Variable | float): Expression = lhs + (-rhs)
+template `-`*(lhs: Variable, rhs: Expression | Term | Variable): Expression = lhs + (-rhs)
+template `-`*(lhs: Variable, rhs: float): Expression = lhs + (-rhs)
 
 # Double add and subtract
 
