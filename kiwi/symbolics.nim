@@ -40,7 +40,8 @@ proc `/`*(expression1, expression2: Expression): Expression =
 template `-`*(expression: Expression): Expression = expression * (-1)
 
 # Double multiply
-proc `*`*(lhs: float, rhs: Expression | Term | Variable): Expression = rhs * lhs
+proc `*`*(lhs: float, rhs: Expression): Expression = rhs * lhs
+proc `*`*(lhs: float, rhs: Term | Variable): Term = rhs * lhs
 
 # Expression add and subtract
 proc `+`*(first, second: Expression): Expression =
