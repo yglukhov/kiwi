@@ -15,7 +15,7 @@ proc reduce(e: Expression): Expression =
         value += term.coefficient
         vars[v] = value
 
-    var reducedTerms = newSeq[Term]()
+    var reducedTerms = newSeqOfCap[Term](vars.len)
     for variable, coef in vars:
         reducedTerms.add(newTerm(variable, coef))
 

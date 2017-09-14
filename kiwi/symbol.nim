@@ -1,16 +1,17 @@
 type
     SymbolKind* = enum
-        INVALID,
         EXTERNAL,
         SLACK,
         ERROR,
         DUMMY
 
-    Symbol* = ref object
-        mKind: SymbolKind
+    Symbol* = distinct int32
 
-proc newSymbol*(kind: SymbolKind = INVALID): Symbol =
-    result.new()
-    result.mKind = kind
+proc newSymbol*(uniqueId: int32, kind: SymbolKind): Symbol {.inline.} =
+    Symbol(int32(uniqueId and 0x3fffffff'i32) or (ord(kind).int32 shl 30))
 
-proc kind*(s: Symbol): SymbolKind = s.mKind
+proc `==`*(a, b: Symbol): bool {.borrow.}
+template isNil*(s: Symbol): bool = s.int32 == 0
+
+template kind*(s: Symbol): SymbolKind = SymbolKind(s.int32 shr 30)
+template invalid*(s: Symbol): bool = s.int32 == 0

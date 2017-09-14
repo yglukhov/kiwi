@@ -6,7 +6,7 @@ type Expression* = ref object
 
 proc newExpression*(constant: float = 0): Expression =
     result.new()
-    result.terms = newSeq[Term]()
+    result.terms = @[]
     result.constant = constant
 
 proc newExpression*(term: Term, constant: float = 0): Expression =

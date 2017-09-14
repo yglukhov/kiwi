@@ -10,8 +10,9 @@ type
         infeasibleRows: seq[Symbol]
         objective: Row
         artificial: Row
+        symbolIDCounter*: int32
 
-    Tag = ref object
+    Tag = tuple
         marker: Symbol
         other: Symbol
 
@@ -28,10 +29,7 @@ type
     RequiredFailureException = object of Exception
     UnknownEditVariableException = object of Exception
 
-proc newTag(): Tag =
-    result.new()
-    result.marker = newSymbol()
-    result.other = newSymbol()
+template isNil(t: Tag): bool = t.marker.isNil
 
 proc newEditInfo(constraint: Constraint, tag: Tag, constant: float): EditInfo =
     result.new()
@@ -48,7 +46,7 @@ proc newSolver*(): Solver =
     result.infeasibleRows = @[]
     result.objective = newRow()
 
-proc createRow(s: Solver, constraint: Constraint, tag: Tag): Row
+proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row
 proc chooseSubject(row: Row, tag: Tag): Symbol
 proc addWithArtificialVariable(s: Solver, row: Row): bool
 proc substitute(s: Solver, symbol: Symbol, row: Row)
@@ -65,17 +63,19 @@ proc addConstraint*(s: Solver, constraint: Constraint) =
     if constraint in s.cns:
         raise newException(DuplicateConstraintException, "")
 
-    let tag = newTag()
+    var tag: Tag
     let row = s.createRow(constraint, tag)
+    assert(not tag.isNil, "Internal error")
+
     var subject = chooseSubject(row, tag)
 
-    if subject.kind == INVALID and allDummies(row):
+    if subject.invalid and allDummies(row):
         if not nearZero(row.constant):
             raise newException(UnsatisfiableConstraintException, "")
         else:
-            subject = tag.marker;
+            subject = tag.marker
 
-    if subject.kind == INVALID:
+    if subject.invalid:
         if not s.addWithArtificialVariable(row):
             raise newException(UnsatisfiableConstraintException, "")
     else:
@@ -216,8 +216,6 @@ proc getDualEnteringSymbol(solver: Solver, row: Row): Symbol =
                 if r < ratio:
                     ratio = r
                     result = s
-    if result.isNil:
-        result = newSymbol()
 
 proc dualOptimize(s: Solver) =
     while s.infeasibleRows.len > 0:
@@ -225,7 +223,7 @@ proc dualOptimize(s: Solver) =
         let row = s.rows.getOrDefault(leaving)
         if row != nil and row.constant < 0:
             let entering = s.getDualEnteringSymbol(row)
-            if entering.kind == INVALID:
+            if entering.invalid:
                 raise newException(InternalSolverError, "internal solver error")
 
             s.rows.del(leaving)
@@ -271,6 +269,10 @@ proc updateVariables*(s: Solver) =
         else:
             variable.value = row.constant
 
+proc newSymbol(s: Solver, kind: SymbolKind): Symbol =
+    inc s.symbolIDCounter
+    newSymbol(s.symbolIDCounter, kind)
+
 proc getVarSymbol(s: Solver, variable: Variable): Symbol =
     ## Get the symbol for the given variable.
     ##
@@ -278,10 +280,10 @@ proc getVarSymbol(s: Solver, variable: Variable): Symbol =
     if variable in s.vars:
         result = s.vars.getOrDefault(variable)
     else:
-        result = newSymbol(EXTERNAL)
+        result = s.newSymbol(EXTERNAL)
         s.vars[variable] = result
 
-proc createRow(s: Solver, constraint: Constraint, tag: Tag): Row =
+proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row =
     ## Create a new Row object for the given constraint.
     ##
     ## The terms in the constraint will be converted to cells in the row.
@@ -314,18 +316,18 @@ proc createRow(s: Solver, constraint: Constraint, tag: Tag): Row =
     case constraint.op
     of OP_LE, OP_GE:
         let coeff = if constraint.op == OP_LE: 1.0 else: -1.0
-        let slack = newSymbol(SLACK);
+        let slack = s.newSymbol(SLACK)
         tag.marker = slack
         row.insert(slack, coeff)
         if constraint.strength < REQUIRED:
-            let error = newSymbol(ERROR)
+            let error = s.newSymbol(ERROR)
             tag.other = error;
             row.insert(error, -coeff);
             s.objective.insert(error, constraint.strength)
     of OP_EQ:
         if constraint.strength < REQUIRED:
-            let errplus = newSymbol(ERROR)
-            let errminus = newSymbol(ERROR)
+            let errplus = s.newSymbol(ERROR)
+            let errminus = s.newSymbol(ERROR)
             tag.marker = errplus
             tag.other = errminus
             row.insert(errplus, -1.0) # v = eplus - eminus
@@ -333,7 +335,7 @@ proc createRow(s: Solver, constraint: Constraint, tag: Tag): Row =
             s.objective.insert(errplus, constraint.strength)
             s.objective.insert(errminus, constraint.strength)
         else:
-            let dummy = newSymbol(DUMMY)
+            let dummy = s.newSymbol(DUMMY)
             tag.marker = dummy
             row.insert(dummy)
 
@@ -362,11 +364,9 @@ proc chooseSubject(row: Row, tag: Tag): Symbol =
         if row.coefficientFor(tag.marker) < 0:
             return tag.marker
 
-    if tag.other != nil and (tag.other.kind == SLACK or tag.other.kind == ERROR):
+    if (not tag.other.isNil) and (tag.other.kind == SLACK or tag.other.kind == ERROR):
         if row.coefficientFor(tag.other) < 0:
             return tag.other
-
-    result = newSymbol()
 
 proc anyPivotableSymbol(s: Solver, row: Row): Symbol =
     ## Get the first Slack or Error symbol in the row.
@@ -374,10 +374,7 @@ proc anyPivotableSymbol(s: Solver, row: Row): Symbol =
     ## If no such symbol is present, and Invalid symbol will be returned.
     for k, v in row.cells:
         if k.kind == SLACK or k.kind == ERROR:
-            result = k
-
-    if result.isNil:
-        result = newSymbol()
+            return k
 
 proc addWithArtificialVariable(s: Solver, row: Row): bool =
     ## Add the row to the tableau using an artificial variable.
@@ -388,7 +385,7 @@ proc addWithArtificialVariable(s: Solver, row: Row): bool =
 
     # Create and add the artificial variable to the tableau
 
-    let art = newSymbol(SLACK)
+    let art = s.newSymbol(SLACK)
     s.rows[art] = newRow(row)
 
     s.artificial = newRow(row)
@@ -419,7 +416,7 @@ proc addWithArtificialVariable(s: Solver, row: Row): bool =
             return success
 
         let entering = s.anyPivotableSymbol(rowptr)
-        if entering.kind == INVALID:
+        if entering.invalid:
             return false # unsatisfiable (will this ever happen?)
 
         rowptr.solveFor(art, entering)
@@ -460,7 +457,6 @@ proc getEnteringSymbol(objective: Row): Symbol =
     for k, v in objective.cells:
         if k.kind != DUMMY and v < 0:
             return k
-    return newSymbol()
 
 proc getLeavingRow(s: Solver, entering: Symbol): Row =
     ## Compute the row which holds the exit symbol for a pivot.
@@ -489,7 +485,7 @@ proc optimize(s: Solver, objective: Row) =
     ## until the objective function reaches a minimum.
     while true:
         let entering = getEnteringSymbol(objective);
-        if entering.kind == INVALID:
+        if entering.invalid:
             return
 
         let entry = s.getLeavingRow(entering)
