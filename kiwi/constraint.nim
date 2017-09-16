@@ -1,11 +1,17 @@
 import tables
 
-import expression, relational_operator, strength, variable, util, term
+import expression, strength, variable, util, term
 
-type Constraint* = ref object
-    expression*: Expression
-    strength*: float
-    op*: RelationalOperator
+type
+    Constraint* = ref object
+        expression*: Expression
+        strength*: float
+        op*: RelationalOperator
+
+    RelationalOperator* = enum
+        OP_LE
+        OP_GE
+        OP_EQ
 
 proc reduce(e: Expression): Expression =
     var vars = initTable[Variable, float]()

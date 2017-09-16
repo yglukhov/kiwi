@@ -1,4 +1,4 @@
-import term, variable, expression, constraint, relational_operator
+import term, variable, expression, constraint
 
 # Variable multiply, divide, and unary invert
 template `*`*(variable: Variable, coefficient: float): Term = newTerm(variable, coefficient)

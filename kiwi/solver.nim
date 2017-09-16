@@ -1,5 +1,5 @@
 import tables
-import symbol, constraint, variable, row, util, strength, expression, term, relational_operator
+import symbol, constraint, variable, row, util, strength, expression, term
 
 type
     Solver* = ref object
