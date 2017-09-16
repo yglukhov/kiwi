@@ -48,7 +48,7 @@ proc insert*(r, other: Row, coefficient: float = 1.0) =
         # r.insert(s, coeff)  this line looks different than the c++
 
         # changes start here
-        let temp = r.cells.getOrDefault(s) + coeff;
+        let temp = r.cells.getOrDefault(s) + coeff
         if nearZero(temp):
             r.cells.del(s)
         else:
@@ -94,7 +94,7 @@ proc solveFor*(r: Row, lhs, rhs: Symbol) =
     r.insert(lhs, -1.0)
     r.solveFor(rhs)
 
-proc coefficientFor*(r: Row, symbol: Symbol): float =
+proc coefficientFor*(r: Row, symbol: Symbol): float {.inline.} =
     ## Get the coefficient for the given symbol.
     ##
     ## If the symbol does not exist in the row, zero will be returned.

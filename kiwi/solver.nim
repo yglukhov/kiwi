@@ -29,7 +29,7 @@ type
     RequiredFailureException = object of Exception
     UnknownEditVariableException = object of Exception
 
-template isNil(t: Tag): bool = t.marker.isNil
+template isNil(t: Tag): bool = t.marker.invalid
 
 proc newEditInfo(constraint: Constraint, tag: Tag, constant: float): EditInfo =
     result.new()
@@ -90,9 +90,9 @@ proc addConstraint*(s: Solver, constraint: Constraint) =
 proc removeMarkerEffects(s: Solver, marker: Symbol, strength: float) =
     let row = s.rows.getOrDefault(marker)
     if row.isNil:
-        s.objective.insert(marker, -strength);
+        s.objective.insert(marker, -strength)
     else:
-        s.objective.insert(row, -strength);
+        s.objective.insert(row, -strength)
 
 proc removeConstraintEffects(s: Solver, constraint: Constraint, tag: Tag) =
     if tag.marker.kind == ERROR:
@@ -108,7 +108,7 @@ proc getMarkerLeavingRow(solver: Solver, marker: Symbol): Row =
     for s, candidateRow in solver.rows:
         let c = candidateRow.coefficientFor(marker)
         if c == 0.0:
-            continue;
+            continue
 
         if s.kind == EXTERNAL:
             third = candidateRow
@@ -118,14 +118,14 @@ proc getMarkerLeavingRow(solver: Solver, marker: Symbol): Row =
                 r1 = r
                 first = candidateRow
         else:
-            let r = candidateRow.constant / c;
+            let r = candidateRow.constant / c
             if r < r2:
                 r2 = r
                 second = candidateRow
 
     if first != nil: return first
     if second != nil: return second
-    return third;
+    return third
 
 proc removeConstraint*(s: Solver, constraint: Constraint) =
     let tag = s.cns.getOrDefault(constraint)
@@ -152,7 +152,7 @@ proc removeConstraint*(s: Solver, constraint: Constraint) =
             if v == row:
                 leaving = sym
 
-        if leaving.isNil:
+        if leaving.invalid:
             raise newException(InternalSolverError, "internal solver error")
 
         s.rows.del(leaving)
@@ -180,7 +180,7 @@ proc addEditVariable*(s: Solver, variable: Variable, strength: float) =
     except:
         echo getCurrentException().getStackTrace()
 
-    let info = newEditInfo(constraint, s.cns.getOrDefault(constraint), 0.0);
+    let info = newEditInfo(constraint, s.cns.getOrDefault(constraint), 0.0)
     s.edits[variable] = info
 
 proc removeEditVariable*(s: Solver, variable: Variable) =
@@ -228,7 +228,7 @@ proc dualOptimize(s: Solver) =
 
             s.rows.del(leaving)
             row.solveFor(leaving, entering)
-            s.substitute(entering, row);
+            s.substitute(entering, row)
             s.rows[entering] = row
 
 proc suggestValue*(s: Solver, variable: Variable, value: float) =
@@ -246,10 +246,10 @@ proc suggestValue*(s: Solver, variable: Variable, value: float) =
         s.dualOptimize()
         return
 
-    row = s.rows.getOrDefault(info.tag.other);
+    row = s.rows.getOrDefault(info.tag.other)
     if row != nil:
         if row.add(delta) < 0:
-            s.infeasibleRows.add(info.tag.other);
+            s.infeasibleRows.add(info.tag.other)
         s.dualOptimize()
         return
 
@@ -277,9 +277,8 @@ proc getVarSymbol(s: Solver, variable: Variable): Symbol =
     ## Get the symbol for the given variable.
     ##
     ## If a symbol does not exist for the variable, one will be created.
-    if variable in s.vars:
-        result = s.vars.getOrDefault(variable)
-    else:
+    result = s.vars.getOrDefault(variable)
+    if result.invalid:
         result = s.newSymbol(EXTERNAL)
         s.vars[variable] = result
 
@@ -309,9 +308,9 @@ proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row =
             let otherRow = s.rows.getOrDefault(symbol)
 
             if otherRow.isNil:
-                row.insert(symbol, term.coefficient);
+                row.insert(symbol, term.coefficient)
             else:
-                row.insert(otherRow, term.coefficient);
+                row.insert(otherRow, term.coefficient)
 
     case constraint.op
     of OP_LE, OP_GE:
@@ -321,8 +320,8 @@ proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row =
         row.insert(slack, coeff)
         if constraint.strength < REQUIRED:
             let error = s.newSymbol(ERROR)
-            tag.other = error;
-            row.insert(error, -coeff);
+            tag.other = error
+            row.insert(error, -coeff)
             s.objective.insert(error, constraint.strength)
     of OP_EQ:
         if constraint.strength < REQUIRED:
@@ -364,7 +363,7 @@ proc chooseSubject(row: Row, tag: Tag): Symbol =
         if row.coefficientFor(tag.marker) < 0:
             return tag.marker
 
-    if (not tag.other.isNil) and (tag.other.kind == SLACK or tag.other.kind == ERROR):
+    if tag.other.valid and (tag.other.kind == SLACK or tag.other.kind == ERROR):
         if row.coefficientFor(tag.other) < 0:
             return tag.other
 
@@ -484,7 +483,7 @@ proc optimize(s: Solver, objective: Row) =
     ## This method performs iterations of Phase 2 of the simplex method
     ## until the objective function reaches a minimum.
     while true:
-        let entering = getEnteringSymbol(objective);
+        let entering = getEnteringSymbol(objective)
         if entering.invalid:
             return
 
@@ -498,6 +497,6 @@ proc optimize(s: Solver, objective: Row) =
                 entryKey = key
 
         s.rows.del(entryKey)
-        entry.solveFor(entryKey, entering);
+        entry.solveFor(entryKey, entering)
         s.substitute(entering, entry)
         s.rows[entering] = entry

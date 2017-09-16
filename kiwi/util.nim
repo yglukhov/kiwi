@@ -2,11 +2,7 @@ import hashes
 
 const EPS = 1.0e-8;
 
-proc nearZero*(value: float): bool =
-    if value < 0:
-        -value < EPS
-    else:
-        value < EPS
+proc nearZero*(value: float): bool {.inline.} = abs(value) < EPS
 
 when defined(js):
     var idCounter = 0
