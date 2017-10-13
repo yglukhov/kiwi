@@ -57,7 +57,8 @@ template `+`*(expression: Expression, variable: Variable): Expression = expressi
 proc `+`*(expression: Expression, constant: float): Expression =
     newExpression(expression.terms, expression.constant + constant)
 
-template `-`*(lhs: Expression, rhs: Expression | Term | Variable | float): Expression = lhs + (-rhs)
+template `-`*(lhs: Expression, rhs: Expression | Term | Variable): Expression = lhs + (-rhs)
+template `-`*(lhs: Expression, rhs: float): Expression = lhs + (-rhs)
 
 # Term add and subtract
 template `+`*(term: Term, expression: Expression): Expression = expression + term
@@ -65,7 +66,8 @@ proc `+`*(first, second: Term): Expression = newExpression(@[first, second])
 template `+`*(term: Term, variable: Variable): Expression = term + newTerm(variable)
 template `+`*(term: Term, constant: float): Expression = newExpression(term, constant)
 
-template `-`*(lhs: Term, rhs: Expression | Term | Variable | float): Expression = lhs + (-rhs)
+template `-`*(lhs: Term, rhs: Expression | Term | Variable): Expression = lhs + (-rhs)
+template `-`*(lhs: Term, rhs: float): Expression = lhs + (-rhs)
 
 # Variable add and subtract
 template `+`*(variable: Variable, expression: Expression): Expression = expression + variable
