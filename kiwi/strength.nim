@@ -8,5 +8,4 @@ const STRONG* = createStrength(1.0, 0.0, 0.0)
 const MEDIUM* = createStrength(0.0, 1.0, 0.0)
 const WEAK* = createStrength(0.0, 0.0, 1.0)
 
-proc clipStrength*(value: float): float =
-    max(0.0, min(REQUIRED, value))
+proc clipStrength*(value: float): float {.inline.} = clamp(value, 0, REQUIRED)
