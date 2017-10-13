@@ -10,7 +10,7 @@ type
         infeasibleRows: seq[Symbol]
         objective: Row
         artificial: Row
-        symbolIDCounter*: int32
+        symbolIDCounter: int32
 
     Tag = tuple
         marker: Symbol
@@ -259,6 +259,11 @@ proc suggestValue*(s: Solver, variable: Variable, value: float) =
             s.infeasibleRows.add(sym)
 
     s.dualOptimize()
+
+proc constraintsCount*(s: Solver): int {.inline.} = s.cns.len # Please dont use this!
+
+# iterator variables*(s: Solver): Variable =
+#     for v in keys(s.vars): yield v
 
 proc updateVariables*(s: Solver) =
     ## Update the values of the external solver variables.
