@@ -10,7 +10,7 @@ type
         infeasibleRows: seq[Symbol]
         objective: Row
         artificial: Row
-        symbolIDCounter: int32
+        symbolIDCounter: uint32
 
     Tag = tuple
         marker: Symbol

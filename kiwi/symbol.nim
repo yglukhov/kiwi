@@ -5,13 +5,13 @@ type
         ERROR,
         DUMMY
 
-    Symbol* = distinct int32
+    Symbol* = distinct uint32
 
-proc newSymbol*(uniqueId: int32, kind: SymbolKind): Symbol {.inline.} =
-    Symbol(int32(uniqueId and 0x3fffffff'i32) or (ord(kind).int32 shl 30))
+proc newSymbol*(uniqueId: uint32, kind: SymbolKind): Symbol {.inline.} =
+    Symbol(uint32(uniqueId and 0x3fffffff'u32) or (ord(kind).uint32 shl 30))
 
 proc `==`*(a, b: Symbol): bool {.borrow.}
 
-template kind*(s: Symbol): SymbolKind = SymbolKind(s.int32 shr 30)
-template invalid*(s: Symbol): bool = s.int32 == 0
-template valid*(s: Symbol): bool = s.int32 != 0
+template kind*(s: Symbol): SymbolKind = SymbolKind(s.uint32 shr 30)
+template invalid*(s: Symbol): bool = s.uint32 == 0
+template valid*(s: Symbol): bool = s.uint32 != 0
