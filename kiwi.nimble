@@ -10,5 +10,5 @@ license       = "MIT"
 requires "nim >= 0.15.3"
 
 task test, "Run tests":
-    exec "nim c -r tests/common.nim"
-    exec "nim js -r tests/common.nim"
+  exec "nim c -r tests/common.nim"
+  exec "nim js -r tests/common.nim"
