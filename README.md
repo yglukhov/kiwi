@@ -19,4 +19,4 @@ assert(y.value == 12)
 ```
 
 # Links
-* [overconstrained.io](http://overconstrained.io) - collection of similar projects
+* [overconstrained.io](http://overconstrained.io) - collection of similar projects ([github](https://github.com/Overconstrained/Overconstrained))
