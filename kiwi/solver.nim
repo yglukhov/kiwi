@@ -45,11 +45,11 @@ proc newSolver*(): Solver =
   result.infeasibleRows = @[]
   result.objective = newRow()
 
-proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row
-proc chooseSubject(row: Row, tag: Tag): Symbol
-proc addWithArtificialVariable(s: Solver, row: Row): bool
-proc substitute(s: Solver, symbol: Symbol, row: Row)
-proc optimize(s: Solver, objective: Row)
+proc createRow(s: Solver, constraint: Constraint, tag: var Tag): Row {.gcsafe.}
+proc chooseSubject(row: Row, tag: Tag): Symbol {.gcsafe.}
+proc addWithArtificialVariable(s: Solver, row: Row): bool {.gcsafe.}
+proc substitute(s: Solver, symbol: Symbol, row: Row) {.gcsafe.}
+proc optimize(s: Solver, objective: Row) {.gcsafe.}
 
 proc allDummies(row: Row): bool =
   ## Test whether a row is composed of all dummy variables.
