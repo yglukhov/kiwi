@@ -1,4 +1,4 @@
-# kiwi [![Build Status](https://travis-ci.org/yglukhov/kiwi.svg?branch=master)](https://travis-ci.org/yglukhov/kiwi) [![nimble](https://raw.githubusercontent.com/yglukhov/nimble-tag/master/nimble_js.png)](https://github.com/yglukhov/nimble-tag)
+# kiwi [![Build Status](https://github.com/yglukhov/kiwi/workflows/CI/badge.svg?branch=master)](https://github.com/yglukhov/kiwi/actions?query=branch%3Amaster) [![nimble](https://raw.githubusercontent.com/yglukhov/nimble-tag/master/nimble_js.png)](https://github.com/yglukhov/nimble-tag)
 
 A Nim port of the [kiwi-java](https://github.com/alexbirkett/kiwi-java) implementation of the Cassowary constraint solving algorithm
 
