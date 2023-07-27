@@ -8,7 +8,6 @@ type Row* = ref object
 
 proc newRow*(constant: float = 0): Row =
   result.new()
-  result.cells = initTable[Symbol, float]()
   result.constant = constant
 
 proc newRow*(other: Row): Row =
@@ -107,7 +106,6 @@ proc substitute*(r: Row, symbol: Symbol, row: Row) =
   ## form x = 3 * y + c the row will be updated to reflect the
   ## expression 3 * a * y + a * c + b.
   ## If the symbol does not exist in the row, this is a no-op.
-  if symbol in r.cells:
-    let coefficient = r.cells[symbol]
-    r.cells.del(symbol)
+  var coefficient: float
+  if r.cells.pop(symbol, coefficient):
     r.insert(row, coefficient)
