@@ -94,17 +94,13 @@ template `<=`*(expression: Expression, term: Term): Constraint = expression <= n
 template `<=`*(expression: Expression, variable: Variable): Constraint = expression <= newTerm(variable)
 template `<=`*(expression: Expression, constant: float): Constraint = expression <= newExpression(constant)
 
-template `>=`*(first, second: Expression): Constraint = newConstraint(first - second, OP_GE)
-template `>=`*(expression: Expression, term: Term): Constraint = expression >= newExpression(term)
-template `>=`*(expression: Expression, variable: Variable): Constraint = expression >= newTerm(variable)
-template `>=`*(expression: Expression, constant: float): Constraint = expression >= newExpression(constant)
-
 # Term relations
 template `==`*(lhs: Term, rhs: Expression): Constraint = rhs == lhs
-template `==`*(lhs: Term, rhs: Term | Variable | float): Constraint = newExpression(lhs) == rhs
+template `==`*(lhs: Term, rhs: Term | Variable): Constraint = newExpression(lhs) == rhs
+template `==`*(lhs: Term, rhs: float): Constraint = newExpression(lhs) == rhs
 
-template `<=`*(lhs: Term, rhs: Expression | Term | Variable | float): Constraint = newExpression(lhs) <= rhs
-template `>=`*(lhs: Term, rhs: Expression | Term | Variable | float): Constraint = newExpression(lhs) >= rhs
+template `<=`*(lhs: Term, rhs: Expression | Term | Variable): Constraint = newExpression(lhs) <= rhs
+template `<=`*(lhs: Term, rhs: float): Constraint = newExpression(lhs) <= rhs
 
 # Variable relations
 template `==`*(variable: Variable, expression: Expression): Constraint = expression == variable
@@ -112,12 +108,8 @@ template `==`*(variable: Variable, term: Term): Constraint = term == variable
 template `==`*(first, second: Variable): Constraint = newTerm(first) == second
 proc `==`*(variable: Variable, constant: float): Constraint = newTerm(variable) == constant
 
-template `<=`*(lhs: Variable, rhs: Expression | Term | Variable | float): Constraint = newTerm(lhs) <= rhs
-
-template `>=`*(variable: Variable, expression: Expression): Constraint = newTerm(variable) >= expression
-template `>=`*(variable: Variable, term: Term): Constraint = term >= variable
-template `>=`*(first, second: Variable): Constraint = newTerm(first) >= second
-proc `>=`*(variable: Variable, constant: float): Constraint = newTerm(variable) >= constant
+template `<=`*(lhs: Variable, rhs: Expression | Term | Variable): Constraint = newTerm(lhs) <= rhs
+template `<=`*(lhs: Variable, rhs: float): Constraint = newTerm(lhs) <= rhs
 
 # Double relations
 proc `==`*(lhs: float, rhs: Expression | Term | Variable): Constraint = rhs == lhs
@@ -125,9 +117,6 @@ proc `==`*(lhs: float, rhs: Expression | Term | Variable): Constraint = rhs == l
 proc `<=`*(constant: float, expression: Expression): Constraint = newExpression(constant) <= expression
 proc `<=`*(constant: float, term: Term): Constraint = constant <= newExpression(term)
 proc `<=`*(constant: float, variable: Variable): Constraint = constant <= newTerm(variable)
-
-proc `>=`*(constant: float, term: Term): Constraint = newExpression(constant) >= term
-proc `>=`*(constant: float, variable: Variable): Constraint = constant >= newTerm(variable)
 
 # Constraint strength modifier
 proc modifyStrength*(constraint: Constraint, strength: float): Constraint =
