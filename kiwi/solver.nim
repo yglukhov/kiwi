@@ -403,7 +403,7 @@ proc addWithArtificialVariable(s: Solver, row: Row): bool =
 
   if rowptr != nil:
     #/**this looks wrong!!!*/
-    #rows.remove(rowptr);
+    # s.rows.del(art)
 
     var deleteQueue = newSeq[Symbol]()
     for sym, v in s.rows:
@@ -458,7 +458,7 @@ proc getEnteringSymbol(objective: Row): Symbol =
     if k.kind != DUMMY and v < 0:
       return k
 
-proc getLeavingRow(s: Solver, entering: Symbol): Row =
+proc getLeavingRow(s: Solver, entering: Symbol): (Symbol, Row) =
   ## Compute the row which holds the exit symbol for a pivot.
   ##
   ## This documentation is copied from the C++ version and is outdated
@@ -476,7 +476,7 @@ proc getLeavingRow(s: Solver, entering: Symbol): Row =
         let temp_ratio = (-candidateRow.constant / temp)
         if temp_ratio < ratio:
           ratio = temp_ratio
-          result = candidateRow
+          result = (key, candidateRow)
 
 proc optimize(s: Solver, objective: Row) =
   ## Optimize the system for the given objective function.
@@ -488,15 +488,10 @@ proc optimize(s: Solver, objective: Row) =
     if entering.invalid:
       return
 
-    let entry = s.getLeavingRow(entering)
-    doAssert(not entry.isNil, "The objective is unbounded.")
+    let (leaving, row) = s.getLeavingRow(entering)
+    doAssert(not row.isNil, "The objective is unbounded.")
 
-    var entryKey: Symbol
-    for key, v in s.rows:
-      if v == entry:
-        entryKey = key
-
-    s.rows.del(entryKey)
-    entry.solveFor(entryKey, entering)
-    s.substitute(entering, entry)
-    s.rows[entering] = entry
+    s.rows.del(leaving)
+    row.solveFor(leaving, entering)
+    s.substitute(entering, row)
+    s.rows[entering] = row
