@@ -99,31 +99,31 @@ proc removeConstraintEffects(s: Solver, constraint: Constraint, tag: Tag) =
   elif tag.other.kind == ERROR:
     s.removeMarkerEffects(tag.other, constraint.strength)
 
-proc getMarkerLeavingRow(solver: Solver, marker: Symbol): Row =
+proc getMarkerLeavingRow(solver: Solver, marker: Symbol): (Symbol, Row) =
   var r1 = Inf
   var r2 = Inf
 
-  var first, second, third: Row
+  var first, second, third: (Symbol, Row)
   for s, candidateRow in solver.rows:
     let c = candidateRow.coefficientFor(marker)
     if c == 0.0:
       continue
 
     if s.kind == EXTERNAL:
-      third = candidateRow
+      third = (s, candidateRow)
     elif c < 0:
       let r = - candidateRow.constant / c
       if r < r1:
         r1 = r
-        first = candidateRow
+        first = (s, candidateRow)
     else:
       let r = candidateRow.constant / c
       if r < r2:
         r2 = r
-        second = candidateRow
+        second = (s, candidateRow)
 
-  if first != nil: return first
-  if second != nil: return second
+  if first[1] != nil: return first
+  if second[1] != nil: return second
   return third
 
 proc removeConstraint*(s: Solver, constraint: Constraint) =
@@ -134,22 +134,10 @@ proc removeConstraint*(s: Solver, constraint: Constraint) =
   s.cns.del(constraint)
   s.removeConstraintEffects(constraint, tag)
 
-  var row = s.rows.getOrDefault(tag.marker)
-  if not row.isNil:
-    s.rows.del(tag.marker)
-  else:
-    row = s.getMarkerLeavingRow(tag.marker)
+  var dummy: Row
+  if not s.rows.pop(tag.marker, dummy):
+    let (leaving, row) = s.getMarkerLeavingRow(tag.marker)
     doAssert(not row.isNil, "internal solver error")
-
-    #This looks wrong! changes made below
-    #Symbol leaving = tag.marker;
-    #rows.remove(tag.marker);
-
-    var leaving: Symbol
-    for sym, v in s.rows:
-      if v == row:
-        leaving = sym
-
     doAssert(not leaving.invalid, "internal solver error")
 
     s.rows.del(leaving)
@@ -381,8 +369,6 @@ proc addWithArtificialVariable(s: Solver, row: Row): bool =
   ##
   ## This will return false if the constraint cannot be satisfied.
 
-  #TODO check this
-
   # Create and add the artificial variable to the tableau
 
   let art = s.newSymbol(SLACK)
@@ -399,29 +385,18 @@ proc addWithArtificialVariable(s: Solver, row: Row): bool =
   # If the artificial variable is basic, pivot the row so that
   # it becomes basic. If the row is constant, exit early.
 
-  let rowptr = s.rows.getOrDefault(art)
-
-  if rowptr != nil:
-    #/**this looks wrong!!!*/
-    # s.rows.del(art)
-
-    var deleteQueue = newSeq[Symbol]()
-    for sym, v in s.rows:
-      if v == rowptr:
-        deleteQueue.add(sym)
-    for sym in deleteQueue:
-      s.rows.del(sym)
-
-    if rowptr.cells.len == 0:
+  var row: Row
+  if s.rows.take(art, row):
+    if row.cells.len == 0:
       return success
 
-    let entering = s.anyPivotableSymbol(rowptr)
+    let entering = s.anyPivotableSymbol(row)
     if entering.invalid:
       return false # unsatisfiable (will this ever happen?)
 
-    rowptr.solveFor(art, entering)
-    s.substitute(entering, rowptr)
-    s.rows[entering] = rowptr
+    row.solveFor(art, entering)
+    s.substitute(entering, row)
+    s.rows[entering] = row
 
   # Remove the artificial variable from the tableau.
   for v in s.rows.values:
