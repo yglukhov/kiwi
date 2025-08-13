@@ -1,4 +1,4 @@
-# kiwi [![Build Status](https://github.com/yglukhov/kiwi/workflows/CI/badge.svg?branch=master)](https://github.com/yglukhov/kiwi/actions?query=branch%3Amaster) [![nimble](https://raw.githubusercontent.com/yglukhov/nimble-tag/master/nimble_js.png)](https://github.com/yglukhov/nimble-tag)
+# kiwi [![CI](https://github.com/yglukhov/kiwi/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/yglukhov/kiwi/actions?query=branch%3Amaster) [![nimble](https://img.shields.io/badge/nimble-black?logo=nim&style=flat&labelColor=171921&color=%23f3d400)](https://nimble.directory/pkg/kiwi)
 
 A Nim port of the [kiwi-java](https://github.com/alexbirkett/kiwi-java) implementation of the Cassowary constraint solving algorithm
 
@@ -19,4 +19,4 @@ assert(y.value == 12)
 ```
 
 # Links
-* [overconstrained.io](http://overconstrained.io) - collection of similar projects ([github](https://github.com/Overconstrained/Overconstrained))
+* [overconstrained](https://yglukhov.github.io/Overconstrained) - collection of similar projects ([github](https://github.com/yglukhov/Overconstrained))
