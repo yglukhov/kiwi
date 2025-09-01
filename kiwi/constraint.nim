@@ -16,16 +16,13 @@ type
 proc reduce(e: Expression): Expression =
   var vars = initTable[Variable, float]()
   for term in e.terms:
-    let v = term.variable
-    var value = vars.getOrDefault(v)
-    value += term.coefficient
-    vars[v] = value
+    vars.mgetOrPut(term.variable, 0) += term.coefficient
 
   var reducedTerms = newSeqOfCap[Term](vars.len)
   for variable, coef in vars:
     reducedTerms.add(newTerm(variable, coef))
 
-  result = newExpression(reducedTerms, e.constant)
+  newExpression(reducedTerms, e.constant)
 
 proc newConstraint*(e: Expression, op: RelationalOperator, strength: float): Constraint =
   result.new()
